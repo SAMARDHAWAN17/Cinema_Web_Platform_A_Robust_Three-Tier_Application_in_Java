@@ -16,7 +16,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main', 
-                    url: 'https://github.com/dmatsanganis/Cinema_Web_Platform_A_Robust_Three-Tier_Application_in_Java.git'
+                    url: 'https://github.com/SAMARDHAWAN17/Cinema_Web_Platform_A_Robust_Three-Tier_Application_in_Java.git'
             }
         }
         
