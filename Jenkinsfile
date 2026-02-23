@@ -9,13 +9,14 @@ pipeline {
     environment {
         SONAR_HOME = tool 'sonar-scanner'
         DOCKER_IMAGE = 'samardhawan17/cinema-app'
+        APP_DIR = 'Cinema_Web_Platform/Cinema_Web_Platform'
     }
     
     stages {
 
         stage('Build') {
             steps {
-                dir('Cinema_Web_Platform') {
+                dir("${APP_DIR}") {
                     sh 'mvn clean package -DskipTests'
                 }
             }
@@ -23,7 +24,7 @@ pipeline {
         
         stage('SonarQube Analysis') {
             steps {
-                dir('Cinema_Web_Platform') {
+                dir("${APP_DIR}") {
                     withSonarQubeEnv('sonar') {
                         sh '''
                         $SONAR_HOME/bin/sonar-scanner \
@@ -38,17 +39,14 @@ pipeline {
         
         stage('Docker Build') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER Cinema_Web_Platform'
+                sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER $APP_DIR'
                 sh 'docker tag $DOCKER_IMAGE:$BUILD_NUMBER $DOCKER_IMAGE:latest'
             }
         }
 
         stage('Trivy Scan') {
             steps {
-                sh '''
-                trivy image --no-progress --severity HIGH,CRITICAL \
-                $DOCKER_IMAGE:$BUILD_NUMBER
-                '''
+                sh 'trivy image $DOCKER_IMAGE:$BUILD_NUMBER'
             }
         }
         
