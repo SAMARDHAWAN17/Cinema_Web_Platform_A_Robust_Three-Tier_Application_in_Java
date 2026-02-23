@@ -12,13 +12,14 @@ pipeline {
         stage('SonarQube Scan') {
             steps {
                 dir("${APP_DIR}") {
-                    withSonarQubeEnv('sonar') {
+                    withCredentials([string(credentialsId: 'sonar-token', variable: 'SONAR_TOKEN')]) {
                         sh '''
                         $SONAR_HOME/bin/sonar-scanner \
                         -Dsonar.projectKey=cinema-app \
                         -Dsonar.projectName=cinema-app \
                         -Dsonar.sources=src \
-                        -Dsonar.java.binaries=.
+                        -Dsonar.java.binaries=. \
+                        -Dsonar.login=$SONAR_TOKEN
                         '''
                     }
                 }
