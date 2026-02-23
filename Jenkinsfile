@@ -1,28 +1,15 @@
 pipeline {
     agent { label 'slave' }
-    
-    tools {
-        maven 'MAVEN'
-        jdk 'JAVA'
-    }
-    
+
     environment {
-        SONAR_HOME = tool 'sonar-scanner'
         DOCKER_IMAGE = 'samardhawan17/cinema-app'
-        APP_DIR = 'Cinema_Web_Platform/Cinema_Web_Platform'
+        APP_DIR = 'Cinema_Web_Platform'
+        SONAR_HOME = tool 'sonar-scanner'
     }
-    
+
     stages {
 
-        stage('Build') {
-            steps {
-                dir("${APP_DIR}") {
-                    sh 'mvn clean package -DskipTests'
-                }
-            }
-        }
-        
-        stage('SonarQube Analysis') {
+        stage('SonarQube Scan') {
             steps {
                 dir("${APP_DIR}") {
                     withSonarQubeEnv('sonar') {
@@ -30,13 +17,14 @@ pipeline {
                         $SONAR_HOME/bin/sonar-scanner \
                         -Dsonar.projectKey=cinema-app \
                         -Dsonar.projectName=cinema-app \
-                        -Dsonar.java.binaries=target/classes
+                        -Dsonar.sources=src \
+                        -Dsonar.java.binaries=.
                         '''
                     }
                 }
             }
         }
-        
+
         stage('Docker Build') {
             steps {
                 sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER $APP_DIR'
@@ -49,7 +37,7 @@ pipeline {
                 sh 'trivy image $DOCKER_IMAGE:$BUILD_NUMBER'
             }
         }
-        
+
         stage('Docker Push') {
             steps {
                 withCredentials([usernamePassword(
@@ -63,7 +51,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Deploy Container') {
             steps {
                 sh 'docker rm -f cinema-app || true'
@@ -71,7 +59,7 @@ pipeline {
             }
         }
     }
-    
+
     post {
         always {
             sh 'docker logout || true'
