@@ -12,14 +12,7 @@ pipeline {
     }
     
     stages {
-        
-        stage('Checkout') {
-            steps {
-                git branch: 'main', 
-                    url: 'https://github.com/SAMARDHAWAN17/Cinema_Web_Platform_A_Robust_Three-Tier_Application_in_Java.git'
-            }
-        }
-        
+
         stage('Build') {
             steps {
                 sh 'mvn clean package -DskipTests'
