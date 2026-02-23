@@ -15,26 +15,30 @@ pipeline {
 
         stage('Build') {
             steps {
-                sh 'mvn clean package -DskipTests'
+                dir('Cinema_Web_Platform') {
+                    sh 'mvn clean package -DskipTests'
+                }
             }
         }
         
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('sonar') {
-                    sh '''
+                dir('Cinema_Web_Platform') {
+                    withSonarQubeEnv('sonar') {
+                        sh '''
                         $SONAR_HOME/bin/sonar-scanner \
                         -Dsonar.projectKey=cinema-app \
                         -Dsonar.projectName=cinema-app \
                         -Dsonar.java.binaries=target/classes
-                    '''
+                        '''
+                    }
                 }
             }
         }
         
         stage('Docker Build') {
             steps {
-                sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER .'
+                sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER Cinema_Web_Platform'
                 sh 'docker tag $DOCKER_IMAGE:$BUILD_NUMBER $DOCKER_IMAGE:latest'
             }
         }
@@ -62,7 +66,7 @@ pipeline {
             }
         }
         
-        stage('Deploy') {
+        stage('Deploy Container') {
             steps {
                 sh 'docker rm -f cinema-app || true'
                 sh 'docker run -d --name cinema-app -p 8081:8080 $DOCKER_IMAGE:latest'
