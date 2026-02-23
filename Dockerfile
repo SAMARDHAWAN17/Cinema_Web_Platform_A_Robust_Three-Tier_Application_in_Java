@@ -1,24 +1,14 @@
-# Stage 1: Build the application
-FROM maven:3.9.9-eclipse-temurin-17 AS builder
+# Use Tomcat image
+FROM tomcat:9.0-jdk17
 
-WORKDIR /app
+# Remove default apps
+RUN rm -rf /usr/local/tomcat/webapps/*
 
-# Copy all project files
-COPY . .
+# Copy project into Tomcat webapps folder
+COPY . /usr/local/tomcat/webapps/ROOT
 
-# Build the jar file
-RUN mvn clean package -DskipTests
-
-# Stage 2: Run the application
-FROM eclipse-temurin:17-jdk
-
-WORKDIR /app
-
-# Copy jar from builder stage
-COPY --from=builder /app/target/*.jar app.jar
-
-# Expose application port
+# Expose port
 EXPOSE 8080
 
-# Run the jar
-ENTRYPOINT ["java", "-jar", "app.jar"]
+# Start Tomcat
+CMD ["catalina.sh", "run"]
